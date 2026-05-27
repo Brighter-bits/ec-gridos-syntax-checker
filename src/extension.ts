@@ -71,8 +71,7 @@ function check(file: vscode.TextDocument, diagnosticCollection: vscode.Diagnosti
                     )
                 );
             }
-            if (!/[UDLRS]+/g.test(splitline[4])){
-                console.log(splitline[4]);
+            if (!/[UDLRS]+/g.test(splitline[4])){ // Check if any unallowed movements are used
                 errors.push(
                     new vscode.Diagnostic(
                         new vscode.Range(i, spaces[3]+1, i, line.length),
@@ -85,9 +84,9 @@ function check(file: vscode.TextDocument, diagnosticCollection: vscode.Diagnosti
 
     }
 
-    diagnosticCollection.set(file.uri, errors);
+    diagnosticCollection.set(file.uri, errors); // put the errors into the diagnostics for that file
     
-    function FindSpaces(line:string){
+    function FindSpaces(line:string){ // Find the indexes of the spaces on the line
         var spaces: number[] = [];
         for (let i = 0; i < line.length; i++) {
             if (spaces.length > 3){

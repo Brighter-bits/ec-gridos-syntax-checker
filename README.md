@@ -1,6 +1,6 @@
 # Everybody Codes GridOS Syntax Checker
 
-A pretty self-explanatory name: A vscode syntax checker and highlighter for the Everybody Codes GridOS language.
+A pretty self-explanatory name: A vscode syntax checker and highlighter for the [Everybody Codes GridOS](https://everybody.codes/gridos/missions) language.
 
 This can:
 - Highlight syntax according to your vscode theme
@@ -9,3 +9,7 @@ This can:
 
 This extension canNOT run the script you write!
 It's just here so that you can see all your code at once, rather than staring at the tiny box on the website.
+
+## How to Use
+
+Create a file with the ```.gridec``` extension and the checker should start working.

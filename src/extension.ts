@@ -44,7 +44,7 @@ function check(file: vscode.TextDocument, diagnosticCollection: vscode.Diagnosti
         if (splitline.length > 2 && spaces.length > 1 && splitline[1].length !== heads){
             errors.push(
                 new vscode.Diagnostic(
-                    new vscode.Range(i, spaces[0+1]+1, i, spaces[1]),
+                    new vscode.Range(i, spaces[0]+1, i, spaces[1]),
                     "The number of READ instructions does not match the number of heads declared in the first line",
                     vscode.DiagnosticSeverity.Error
                 )
@@ -61,14 +61,26 @@ function check(file: vscode.TextDocument, diagnosticCollection: vscode.Diagnosti
             );
         }
 
-        if (splitline.length === 5 && spaces.length === 4 && splitline[4]?.length !== heads){
-            errors.push(
-                new vscode.Diagnostic(
-                    new vscode.Range(i, spaces[3]+1, i, line.length),
-                    "The number of MOVE instructions does not match the number of heads declared in the first line",
-                    vscode.DiagnosticSeverity.Error
-                )
-            );
+        if (splitline.length === 5){
+            if (spaces.length === 4 && splitline[4].length !== heads){ // Check for number of operations
+                errors.push(
+                    new vscode.Diagnostic(
+                        new vscode.Range(i, spaces[3]+1, i, line.length),
+                        "The number of MOVE instructions does not match the number of heads declared in the first line",
+                        vscode.DiagnosticSeverity.Error
+                    )
+                );
+            }
+            if (!/[UDLRS]+/g.test(splitline[4])){
+                console.log(splitline[4]);
+                errors.push(
+                    new vscode.Diagnostic(
+                        new vscode.Range(i, spaces[3]+1, i, line.length),
+                        "Invalid MOVE operations: Only U, D, L, R and S are allowed",
+                        vscode.DiagnosticSeverity.Error
+                    )
+                );
+            }
         }
 
     }

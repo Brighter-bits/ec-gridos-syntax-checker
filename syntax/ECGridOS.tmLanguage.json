@@ -1,0 +1,43 @@
+{
+    "name": "ECGridOS",
+    "scopeName": "source.ecgridos",
+
+    "patterns": [
+        { "include": "#comments" },
+        { "include": "#statement" }
+    ],
+
+    "repository": {
+
+        "comments": {
+            "name": "comment.line.ecgridos",
+            "match": "//.*$"
+        },
+
+        "statement": {
+            "match": "^([A-Za-z1-9]+)?(?:\\s+([^\\s]+))?(?:\\s+([A-Za-z1-9]+))?(?:\\s+([^\\s]+))?(?:\\s+([^\\s]+))?",
+
+            "captures": {
+                "1": {
+                    "name": "keyword.control.ecgridos"
+                },
+
+                "2": {
+                    "name": "keyword.other.ecgridos"
+                },
+
+                "3": {
+                    "name": "keyword.control.ecgridos"
+                },
+
+                "4": {
+                    "name": "keyword.other.ecgridos"
+                },
+
+                "5": {
+                    "name": "constant.numeric.ecgridos"
+                }
+            }
+        }
+    }
+}

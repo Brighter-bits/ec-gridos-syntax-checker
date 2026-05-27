@@ -16,7 +16,12 @@
         "id": "ECGridOS",
         "extensions": [".gridec"],
         "aliases": ["EveryBody Codes GridOS"]
-    }]
+    }],
+    "grammars": [{
+      "language": "ECGridOS",
+      "scopeName": "source.ecgridos",
+      "path": "./syntax/ECGridOS.tmLanguage.json"
+      }]
   },
   "scripts": {
     "vscode:prepublish": "npm run package",

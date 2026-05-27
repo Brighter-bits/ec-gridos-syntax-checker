@@ -3,6 +3,7 @@
   "displayName": "EC GridOS Syntax Checker",
   "description": "A Syntax Checker for Everybody Codes' GridOS language",
   "version": "0.0.1",
+  "publisher": "Brighter-bits",
   "engines": {
     "vscode": "^1.110.0"
   },

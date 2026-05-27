@@ -9,20 +9,14 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": ["onLanguage:ECGridOS"],
   "main": "./dist/extension.js",
   "contributes": {
     "languages": [{
         "id": "ECGridOS",
         "extensions": [".gridec"],
         "aliases": ["EveryBody Codes GridOS"]
-    }],
-    "commands": [
-      {
-        "command": "ec-gridos-syntax-checker.helloWorld",
-        "title": "Hello World"
-      }
-    ]
+    }]
   },
   "scripts": {
     "vscode:prepublish": "npm run package",

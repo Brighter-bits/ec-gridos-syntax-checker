@@ -1,12 +1,11 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 
-// This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
+
 export function activate(context: vscode.ExtensionContext) {
     const diagnosticCollection = vscode.languages.createDiagnosticCollection('ECGridOS'); // Create a collection of errors
     context.subscriptions.push(diagnosticCollection); // Put the logs into the disposables
+    
+    console.log("Started up Succesfully");
 
     // If a file is opened, changed: check for any errors. When the file is closed, look into the errors, and delete the logs using the file as a key.
     vscode.workspace.onDidOpenTextDocument(file => check(file, diagnosticCollection));
@@ -19,7 +18,7 @@ export function activate(context: vscode.ExtensionContext) {
 function check(file: vscode.TextDocument, diagnosticCollection: vscode.DiagnosticCollection){
     if (file.languageId !== "ECGridOS") {return;}
     var errors: vscode.Diagnostic[] = [];
-    var heads = -1;
+    var heads: number = -1;
 
     // Firstly, check for any HEADS, and how many there are
     var firstline = file.lineAt(0).text;
@@ -32,13 +31,60 @@ function check(file: vscode.TextDocument, diagnosticCollection: vscode.Diagnosti
             )
         );
     } else{
-        heads = firstline.split(" ", 2)[1].length;
+        heads = (firstline.split(" ", 2)[1])?.length;
     }
 
     for (let i = 1; i < file.lineCount; i++) {
         var line = file.lineAt(i).text;
-        if (line === "\n") {continue;} // If it's just a newline
-        if (line.startsWith("//")) {continue;}
+        if (line.trim() === "") {continue;} // If it's just a newline, skip
+        if (line.startsWith("//")) {continue;} // If the line is a comment, skip
+        var splitline = line.split(" ", 5); //It turns out you can write whatever you want after a line and it doesn't actually matter
+        var spaces: number[] = FindSpaces(line);
+
+        if (splitline.length > 2 && spaces.length > 1 && splitline[1].length !== heads){
+            errors.push(
+                new vscode.Diagnostic(
+                    new vscode.Range(i, spaces[0+1]+1, i, spaces[1]),
+                    "The number of READ instructions does not match the number of heads declared in the first line",
+                    vscode.DiagnosticSeverity.Error
+                )
+            );
+        }
+
+        if (splitline.length > 3 && spaces.length > 2 && splitline[3]?.length !== heads){
+            errors.push(
+                new vscode.Diagnostic(
+                    new vscode.Range(i, spaces[2]+1, i, spaces[3]),
+                    "The number of WRITE instructions does not match the number of heads declared in the first line",
+                    vscode.DiagnosticSeverity.Error
+                )
+            );
+        }
+
+        if (splitline.length === 5 && spaces.length === 4 && splitline[4]?.length !== heads){
+            errors.push(
+                new vscode.Diagnostic(
+                    new vscode.Range(i, spaces[3]+1, i, line.length),
+                    "The number of MOVE instructions does not match the number of heads declared in the first line",
+                    vscode.DiagnosticSeverity.Error
+                )
+            );
+        }
 
     }
+
+    diagnosticCollection.set(file.uri, errors);
+    
+    function FindSpaces(line:string){
+        var spaces: number[] = [];
+        for (let i = 0; i < line.length; i++) {
+            if (spaces.length > 3){
+                break;
+            }
+            if (line[i] === " "){
+                spaces.push(i);
+            }
+        }
+        return spaces;
+    }    
 }

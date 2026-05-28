@@ -19,6 +19,8 @@ function check(file: vscode.TextDocument, diagnosticCollection: vscode.Diagnosti
     if (file.languageId !== "ECGridOS") {return;}
     var errors: vscode.Diagnostic[] = [];
     var heads: number = -1;
+    var previousLines: [string, string, number][] = []; //[State, Rule, LineNumber]
+    var linesWithOverlaps = new Set<number>();
 
     // Firstly, check for any HEADS, and how many there are
     var firstline = file.lineAt(0).text;
@@ -34,7 +36,6 @@ function check(file: vscode.TextDocument, diagnosticCollection: vscode.Diagnosti
         heads = (firstline.split(" ", 2)[1])?.length;
     }
     
-    var previousLines: [string, string][] = [];
 
     for (let i = 1; i < file.lineCount; i++) {
         var line = file.lineAt(i).text;
@@ -44,18 +45,32 @@ function check(file: vscode.TextDocument, diagnosticCollection: vscode.Diagnosti
         var spaces: number[] = FindSpaces(line);
 
         if (splitline.length > 2 && spaces.length > 1){
-            if (previousLines.find(([state, rule]) => state === splitline[0] && DoRulesOverlap(rule, splitline[1]))){
+            // Check for any overlapping rules
+            var overlapData = previousLines.filter(([state, rule]) => state === splitline[0] && DoRulesOverlap(rule, splitline[1])); //Check through previous lines
+            if (overlapData.length > 0){ //If there is a problem
                 errors.push(
                     new vscode.Diagnostic(
                         new vscode.Range(i, 0, i, line.length),
-                        "Rule overlaps with another rule in this state",
+                        `Rule overlaps with another rule in this state.`,
                         vscode.DiagnosticSeverity.Error
                     )
                 );
-            } else {
-                previousLines.push([splitline[0], splitline[1]]);
-            }
+                linesWithOverlaps.add(i); // It turns out that vscode can put more than one error of the same type on each line, this stops that.
 
+                for (var [s, r, LineNumber] of overlapData){
+                    if (!linesWithOverlaps.has(LineNumber)){
+                        errors.push(
+                            new vscode.Diagnostic(
+                                new vscode.Range(LineNumber, 0, LineNumber, file.lineAt(LineNumber).text.length),
+                                `Rule overlaps with another rule in this state.`,
+                                vscode.DiagnosticSeverity.Error
+                            )
+                        );
+                    }
+                }
+            }
+            
+            //Check if there are enough reads for each head
             if (splitline[1].length !== heads){
                 errors.push(
                     new vscode.Diagnostic(
@@ -66,7 +81,7 @@ function check(file: vscode.TextDocument, diagnosticCollection: vscode.Diagnosti
                 );
             };
         }
-
+        
         if (splitline.length > 3 && spaces.length > 2 && splitline[3]?.length !== heads){
             errors.push(
                 new vscode.Diagnostic(
@@ -76,7 +91,7 @@ function check(file: vscode.TextDocument, diagnosticCollection: vscode.Diagnosti
                 )
             );
         }
-
+        
         if (splitline.length === 5){
             if (spaces.length === 4 && splitline[4].length !== heads){ // Check for number of operations
                 errors.push(
@@ -97,7 +112,8 @@ function check(file: vscode.TextDocument, diagnosticCollection: vscode.Diagnosti
                 );
             }
         }
-
+        
+        previousLines.push([splitline[0], splitline[1], i]);
     }
 
     diagnosticCollection.set(file.uri, errors); // put the errors into the diagnostics for that file

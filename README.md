@@ -13,3 +13,7 @@ It's just here so that you can see all your code at once, rather than staring at
 ## How to Use
 
 Create a file with the ```.gridec``` extension and the checker should start working.
+
+## Note
+
+The problem where when you press enter the autocomplete still tries to complete you movement does still exist, but you can get rid of that by putting "editor.acceptSuggestionOnEnter": "off" into your vscode settings.

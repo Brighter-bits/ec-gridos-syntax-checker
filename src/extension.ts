@@ -33,6 +33,8 @@ function check(file: vscode.TextDocument, diagnosticCollection: vscode.Diagnosti
     } else{
         heads = (firstline.split(" ", 2)[1])?.length;
     }
+    
+    var previousLines: [string, string][] = [];
 
     for (let i = 1; i < file.lineCount; i++) {
         var line = file.lineAt(i).text;
@@ -41,14 +43,28 @@ function check(file: vscode.TextDocument, diagnosticCollection: vscode.Diagnosti
         var splitline = line.split(" ", 5); //It turns out you can write whatever you want after a line and it doesn't actually matter
         var spaces: number[] = FindSpaces(line);
 
-        if (splitline.length > 2 && spaces.length > 1 && splitline[1].length !== heads){
-            errors.push(
-                new vscode.Diagnostic(
-                    new vscode.Range(i, spaces[0]+1, i, spaces[1]),
-                    "The number of READ instructions does not match the number of heads declared in the first line",
-                    vscode.DiagnosticSeverity.Error
-                )
-            );
+        if (splitline.length > 2 && spaces.length > 1){
+            if (previousLines.find(([state, rule]) => state === splitline[0] && DoRulesOverlap(rule, splitline[1]))){
+                errors.push(
+                    new vscode.Diagnostic(
+                        new vscode.Range(i, 0, i, line.length),
+                        "Rule overlaps with another rule in this state",
+                        vscode.DiagnosticSeverity.Error
+                    )
+                );
+            } else {
+                previousLines.push([splitline[0], splitline[1]]);
+            }
+
+            if (splitline[1].length !== heads){
+                errors.push(
+                    new vscode.Diagnostic(
+                        new vscode.Range(i, spaces[0]+1, i, spaces[1]),
+                        "The number of READ instructions does not match the number of heads declared in the first line",
+                        vscode.DiagnosticSeverity.Error
+                    )
+                );
+            };
         }
 
         if (splitline.length > 3 && spaces.length > 2 && splitline[3]?.length !== heads){
@@ -97,5 +113,20 @@ function check(file: vscode.TextDocument, diagnosticCollection: vscode.Diagnosti
             }
         }
         return spaces;
-    }    
+    }
+
+    function DoRulesOverlap(a:string, b:string){ //returns true if this rule collides with another rule in the state
+        if (a.length !== b.length) {return false;} 
+        for (let i = 0; i < a.length; i++) {
+            if (!DoCharactersOverlap(a[i], b[i])) {return false;} // If even one of the head's rules is different, then the pattern must be different and false can be returned.
+        }
+        return true; //If there were no differentiating factors, then the rule must have already been used.
+    }
+
+    function DoCharactersOverlap(a:string, b:string){
+        if (a === '*' || b === '*') {return true;} //If either is *, then the rule will always overlap
+        if (a === '!' && b !== '_') {return true;} //If one is a ! then the other has to be a _ for there to be no overlap
+        if (b === '!' && a !== '_') {return true;} //If one is a ! then the other has to be a _ for there to be no overlap
+        return a === b;  //If they're the same, they're the same
+    }
 }

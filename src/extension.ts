@@ -4,8 +4,21 @@ import * as vscode from 'vscode';
 export function activate(context: vscode.ExtensionContext) {
     const diagnosticCollection = vscode.languages.createDiagnosticCollection('ECGridOS'); // Create a collection of errors
     context.subscriptions.push(diagnosticCollection); // Put the logs into the disposables
+    const hasNotified = context.globalState.get<boolean>('deprecationNotified');
     
     console.log("Started up Succesfully");
+
+    if (!hasNotified) { // Notify the user on the fact this extension is deprecated now
+        vscode.window.showInformationMessage(
+            'Hey! The EC GridOS Syntax Checker is now deprecated. You can find the alternative extension under the name "GridOS - EverybodyCodes"',
+            'Install Extension'
+        ).then(selection => {
+            if (selection === 'Install Extension') {
+                vscode.env.openExternal(vscode.Uri.parse('vscode:extension/PaulKeller.gridos-everybodycodes'));
+            }
+        });
+    }
+    context.globalState.update('deprecationNotified', true);
 
     // If a file is opened, changed: check for any errors. When the file is closed, look into the errors, and delete the logs using the file as a key.
     vscode.workspace.onDidOpenTextDocument(file => check(file, diagnosticCollection));
@@ -16,7 +29,7 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 function check(file: vscode.TextDocument, diagnosticCollection: vscode.DiagnosticCollection){
-    if (file.languageId !== "ECGridOS") {return;}
+    if (file.languageId !== "ECGridOS" && file.languageId !== "gridec") {return;}
     var errors: vscode.Diagnostic[] = [];
     var heads: number = -1;
     var previousLines: [string, string, number][] = []; //[State, Rule, LineNumber]
